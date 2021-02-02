@@ -137,10 +137,10 @@ class Jointer(PoweredShopTool):
         if self._is_step_acceptable(step):
             self.load_work_piece()
             super().use()
-            self.join_wood(step)
+            self.joint_wood(step)
             super().turn_off()
 
-    def join_wood(self, step):
+    def joint_wood(self, step):
         step.perform()
 
     def load_work_piece(self):
@@ -178,6 +178,23 @@ class Lathe(PoweredShopTool):
 
     def load_work_piece(self):
         super()._initilize('Loading work piece', self.loading_time, self.loading_step)
+
+
+class Padder(PoweredShopTool):
+    def __init__(self, **kwargs):
+        self.name = 'padder'
+        self.acceptable_steps = [cs.PaddingStep]
+        super().__init__(self.name, **kwargs)
+
+    def use(self, step):
+        if self._is_step_acceptable(step):
+            super().use()
+            self.add_padding(step)
+
+    def add_padding(self, step):
+        super()._initilize('Affixing part', self.loading_time, self.loading_step)
+        super()._initilize('Loading padding', self.loading_time, self.loading_step)
+        step.perform()
 
 
 class Planer(PoweredShopTool):
@@ -283,7 +300,9 @@ class InvalidStepError(Exception):
 # thinking this might function similar to the WoodObjectEncyclopedia, in that it would be our Factory for creating
 # shop tools
 class ShopCatalog:
-    pass
+    def __init__(self):
+        pass
+
 
 
 if __name__ == '__main__':
