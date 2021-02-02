@@ -1,14 +1,17 @@
 from collections import namedtuple
 import crafting_steps as cs
+from wood_objects import RoundLeg, SquareLeg, Board
 
 DEFAULT_NUM_LEGS = 4
 
+
 class Blueprint:
 
-    def __init__(self, name, design):
+    def __init__(self, name, design, **kwargs):
         self.name = name
         self.steps = design.steps
         self.req_tools = design.req_tools
+        self.req_parts = design.req_parts
         self._calculate_turning_steps()
         self._calculate_assembly_time()
 
@@ -21,6 +24,11 @@ class Blueprint:
         if hasattr(self, 'num_legs'):
             for i in range(self.num_legs):
                 self.steps.insert(0, cs.TurningStep())
+
+    def show_remaining_steps(self):
+        print('Steps left to complete: ')
+        for s in (filter(lambda e: not e.is_completed, self.steps)):
+            print(s, end=', ')
 
 
 class ChairBlueprint(Blueprint):
@@ -95,29 +103,60 @@ class WoodObjectEncyclopedia:
     which stores the class--called constructor--the steps to craft, and required tools for assembly
     """
     __name = 'Encyclopedia of Wood'
-    Design = namedtuple('Design', 'constructor steps req_tools')
+    Design = namedtuple('Design', 'constructor steps req_tools req_parts')
 
-    # chairs, desks, and tables, even though they require the Lathe, do not get passed a TurningStep as that is handled
-    # by the Blueprint parent class based on the number of legs passed to the constructor
+    # chairs, desks, and tables, even though they require the Lathe, get passed neither TurningSteps nor Legs as those
+    # are handled by the Blueprint parent class based on the number of legs passed to the constructor
     __item_dict = {
-        'chair': Design(ChairBlueprint, [cs.SandingStep(), cs.GluingStep(), cs.FasteningStep()], ['Lathe', 'Sander']),
-        'cushioned chair': Design(CushionedChairBlueprint,
-                                  [cs.SandingStep(), cs.GluingStep(), cs.FasteningStep(), cs.PaddingStep()],
-                                  ['Lathe', 'Sander', 'Padder']),
-        'desk': Design(DeskBlueprint, [cs.CuttingStep(), cs.PlaningStep(), cs.JointingStep(), cs.SandingStep(), cs.FasteningStep()],
-                       ['Lathe', 'Planer', 'Jointer', 'Sander']),
-        'table': Design(TableBlueprint, [cs.TurningStep(), cs.JointingStep(), cs.PlaningStep(),
-                                         cs.GluingStep(), cs.FasteningStep(), cs.SandingStep()]
-                        , ['Lathe', 'Jointer', 'Planer', 'Sander']),
-        'drawer': Design(DrawerBlueprint, [cs.JointingStep(), cs.PlaningStep(), cs.SandingStep, cs.GluingStep()],
-                         ['Sander', 'Jointer', 'Planer']),
-        'bed': Design(BedBlueprint, [cs.JointingStep(), cs.PlaningStep(), cs.PaddingStep(), cs.FasteningStep()],
-                      ['Jointer', 'Planer', 'Padder']),
-        'sofa': Design(SofaBlueprint, [cs.JointingStep(), cs.PlaningStep(), cs.PaddingStep(), cs.FasteningStep()]
-                       , ['Jointer', 'Planer', 'Padder']),
-        'cutting board': Design(CuttingBoardBlueprint, [cs.JointingStep(), cs.PlaningStep(),
-                                                        cs.SandingStep(), cs.GluingStep()],
-                                ['Sander', 'Jointer', 'Planer'])
+        'chair': Design(
+            ChairBlueprint,
+            [cs.SandingStep(), cs.GluingStep(), cs.FasteningStep()],
+            ['Lathe', 'Sander'],
+            [Board, Board, Board, Board]
+        ),
+        'cushioned chair': Design(
+            CushionedChairBlueprint,
+            [cs.SandingStep(), cs.GluingStep(), cs.FasteningStep(), cs.PaddingStep()],
+            ['Lathe', 'Sander', 'Padder'],
+            [Board, Board, Board, Board]
+        ),
+        'desk': Design(
+            DeskBlueprint,
+            [cs.CuttingStep(), cs.PlaningStep(), cs.JointingStep(), cs.SandingStep(), cs.FasteningStep()],
+            ['Lathe', 'Planer', 'Jointer', 'Sander'],
+            [Board, Board]
+        ),
+        'table': Design(
+            TableBlueprint,
+            [cs.TurningStep(), cs.JointingStep(), cs.PlaningStep(),
+             cs.GluingStep(), cs.FasteningStep(), cs.SandingStep()],
+            ['Lathe', 'Jointer', 'Planer', 'Sander'],
+            []
+        ),
+        'drawer': Design(
+            DrawerBlueprint,
+            [cs.JointingStep(), cs.PlaningStep(), cs.SandingStep, cs.GluingStep()],
+            ['Sander', 'Jointer', 'Planer'],
+            []
+        ),
+        'bed': Design(
+            BedBlueprint,
+            [cs.JointingStep(), cs.PlaningStep(), cs.PaddingStep(), cs.FasteningStep()],
+            ['Jointer', 'Planer', 'Padder'],
+            []
+        ),
+        'sofa': Design(
+            SofaBlueprint,
+            [cs.JointingStep(), cs.PlaningStep(), cs.PaddingStep(), cs.FasteningStep()],
+            ['Jointer', 'Planer', 'Padder'],
+            []
+        ),
+        'cutting board': Design(
+            CuttingBoardBlueprint,
+            [cs.JointingStep(), cs.PlaningStep(), cs.SandingStep(), cs.GluingStep()],
+            ['Sander', 'Jointer', 'Planer'],
+            []
+        )
     }
 
     @staticmethod
@@ -134,7 +173,6 @@ if __name__ == '__main__':
     blueprints = []
     for req in requests:
         blueprints.append(WoodObjectEncyclopedia.get_blueprint(req))
-
 
     for bp in blueprints:
         print(bp.name, bp.assembly_time, bp.steps)
