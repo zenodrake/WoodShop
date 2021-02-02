@@ -5,21 +5,67 @@ import shop_tools as st
 
 
 class WoodObject(ABC):
-    @abstractmethod
     def __init__(self, name):
         self.name = name
-        self.is_completed = False
+        self.is_planed = False
+        self.is_jointed = False
+        self.is_routed = False
+        self.is_sanded = False
+
+    def set_planed(self):
+        self.is_planed = True
+
+    def set_sanded(self):
+        self.is_sanded = True
+
+    def set_jointed(self):
+        self.is_jointed = True
+
+    def set_routed(self):
+        self.is_routed = True
+
+
+class FurnitureComponent(WoodObject):
+    def __init__(self, name):
+        self.name = name
+        super().__init__(self.name)
+
+
+class RoundLeg(FurnitureComponent):
+    def __init__(self):
+        self.name = 'Round leg'
+        super().__init__(self.name)
+
+
+class SquareLeg(FurnitureComponent):
+    def __init__(self):
+        self.name = 'Square leg'
+        super().__init__(self.name)
+
+
+class Board(FurnitureComponent):
+    def __init__(self):
+        self.name = 'Board'
+        super().__init__(self.name)
+
+
+class CompletedWoodObject(WoodObject):
+    def __init__(self, name):
+        self.name = name
+        super().__init__(self.name)
+        self.req_parts = []
+        self.__is_completed = False
+
+    @property
+    def is_completed(self):
+        return self.__is_completed
 
     @abstractmethod
     def use(self):
         pass
 
-    def show_remaining_steps(self):
-        for step in self.steps:
-            print(step)
 
-
-class Bed(WoodObject):
+class Bed(CompletedWoodObject):
     def __init__(self, furniture, **kwargs):
         self.name = 'Bed'
         super().__init__(self.name, furniture)
@@ -42,7 +88,7 @@ class Bed(WoodObject):
         print('You are now asleep')
 
 
-class Chair(WoodObject):
+class Chair(CompletedWoodObject):
     WEIGHT_LIMIT_PER_LEG = 100
     WEIGHT_PER_LEG = 1
     WEIGHT_OF_SEAT = 2
@@ -103,7 +149,7 @@ class CushionedChair(Chair):
         self.cushioned = True
 
 
-class CuttingBoard(WoodObject):
+class CuttingBoard(CompletedWoodObject):
     def __init__(self, furniture, **kwargs):
         self.name = 'Cutting Board'
         super().__init__(self.name, furniture)
@@ -115,7 +161,7 @@ class CuttingBoard(WoodObject):
         print('You cut mightily')
 
 
-class Desk(WoodObject):
+class Desk(CompletedWoodObject):
     def __init__(self, furniture, **kwargs):
         self.name = 'Desk'
         super().__init__(self.name, furniture)
@@ -152,7 +198,7 @@ class Desk(WoodObject):
         print(f'You are now using the {self.name} to write a thing')
 
 
-class Drawer(WoodObject):
+class Drawer(CompletedWoodObject):
     def __init__(self, furniture, **kwargs):
         self.name = 'Drawer'
         super().__init__(self.name, furniture)
@@ -201,7 +247,7 @@ class Drawer(WoodObject):
         print(f'You are now using the {self.name} to draw something')
 
 
-class Sofa(WoodObject):
+class Sofa(CompletedWoodObject):
     def __init__(self, furniture, **kwargs):
         self.name = 'Sofa'
         super().__init__(self.name, furniture)
@@ -224,7 +270,7 @@ class Sofa(WoodObject):
         print('You are now sitting down')
 
 
-class Table(WoodObject):
+class Table(CompletedWoodObject):
     def __init__(self, furniture, **kwargs):
         self.name = 'Table'
         super().__init__(self.name, furniture)
