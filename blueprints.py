@@ -6,6 +6,19 @@ DEFAULT_NUM_LEGS = 4
 
 
 class Blueprint:
+    """Base class for all blueprints.
+        Defines the following attributes:
+            name
+            steps
+            req_tools -- the ShopTools necessary to successfully complete the blueprint
+            req_parts -- the FurnitureComponents necessary to successfully complete the blueprint
+
+        Defines the following methods:
+            _calculate_assembly_time()
+            _calculate_turning_steps()
+            show_remaining_steps()
+
+    """
 
     def __init__(self, name, design, **kwargs):
         self.name = name
@@ -16,16 +29,20 @@ class Blueprint:
         self._calculate_assembly_time()
 
     def _calculate_assembly_time(self):
+        """Add together all the times of each of the steps to arrive at the total length of time to fully complete"""
         self.assembly_time = 0
         for step in self.steps:
             self.assembly_time += step.time_to_complete
 
     def _calculate_turning_steps(self):
+        """Based on the number of legs, calculate how many turning steps are necessary.
+        Won't break if passed a negative number of steps, but it doesn't make a lot of sense"""
         if hasattr(self, 'num_legs'):
             for i in range(self.num_legs):
                 self.steps.insert(0, cs.TurningStep())
 
     def show_remaining_steps(self):
+        """Print out the steps left to be completed"""
         print('Steps left to complete: ')
         for s in (filter(lambda e: not e.is_completed, self.steps)):
             print(s, end=', ')
@@ -93,6 +110,7 @@ class TableBlueprint(Blueprint):
 
 
 class UnknownItemError(KeyError):
+    """Used to signify when an item which doesn't exist in the WoodObjectEncylopedia is requested"""
     def __init__(self, item_name):
         super().__init__(f'An object of name "{item_name}" does not exist in the Encyclopedia')
 
@@ -101,6 +119,14 @@ class WoodObjectEncyclopedia:
     """This class stores all the information about creating furniture
     This information takes the form of a namedtuple called Furniture
     which stores the class--called constructor--the steps to craft, and required tools for assembly
+
+        Defines the following attributes:
+            __name
+            Design, a namedtuple
+            __item_dict
+
+        Defines the following methods:
+            get_item(), a static method
     """
     __name = 'Encyclopedia of Wood'
     Design = namedtuple('Design', 'constructor steps req_tools req_parts')
@@ -161,6 +187,7 @@ class WoodObjectEncyclopedia:
 
     @staticmethod
     def get_blueprint(item_name):
+        """Return a concrete implementation of a Blueprint based on <item_name>"""
         design = WoodObjectEncyclopedia.__item_dict.get(item_name)
 
         if not design:
