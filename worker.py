@@ -2,6 +2,36 @@ from blueprints import WoodObjectEncyclopedia
 
 
 class Worker:
+    """
+    The class which represents the player of this little program
+        Defines the following attributes:
+            name
+            known_blueprints
+            skills
+            enc
+            business
+            active_job
+            current_tool
+            partial_jobs
+            inventory
+
+        Defines the following properties:
+
+
+        Defines the following methods:
+            assign_to_business()
+            make_item()
+            prepare_item()
+            prepare_items()
+            craft()
+            assemble()
+            learn_blueprints()
+            learn_skill()
+            use_tool()
+            show_known_blueprints()
+            show_skills()
+    """
+
     def __init__(self, name):
         self.name = name
         self.known_blueprints = {}
@@ -84,6 +114,7 @@ class UnknownBlueprintError(Exception):
 class InvalidBusinessError(Exception):
     def __init__(self, *args):
         super().__init__(*args)
+
 
 if __name__ == '__main__':
     import business
