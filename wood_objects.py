@@ -5,6 +5,23 @@ import shop_tools as st
 
 
 class WoodObject(ABC):
+    """
+    Base class for all WoodObjects
+        Defines the following attributes:
+            name
+            is_planed
+            is_jointed
+            is_routed
+            is_sanded
+
+        Defines the following properties:
+
+        Defines the following methods:
+            set_planed()
+            set_sanded()
+            sed_jointed()
+            set_routed()
+    """
     def __init__(self, name):
         self.name = name
         self.is_planed = False
@@ -50,6 +67,17 @@ class Board(FurnitureComponent):
 
 
 class CompletedWoodObject(WoodObject):
+    """
+    A class which does a thing
+        Defines the following attributes:
+            req_parts
+            __is_completed
+
+        Defines the following properties:
+            is_completed
+
+        Defines the following methods:
+    """
     def __init__(self, name):
         self.name = name
         super().__init__(self.name)
@@ -66,6 +94,18 @@ class CompletedWoodObject(WoodObject):
 
 
 class Bed(CompletedWoodObject):
+    """
+    A class which does a thing
+        Defines the following attributes:
+            length
+            width
+            height
+
+        Defines the following properties:
+
+        Defines the following methods:
+            _set_defaults()
+    """
     def __init__(self, furniture, **kwargs):
         self.name = 'Bed'
         super().__init__(self.name, furniture)
@@ -89,6 +129,20 @@ class Bed(CompletedWoodObject):
 
 
 class Chair(CompletedWoodObject):
+    """
+    A class which does a thing
+        Defines the following attributes:
+            name
+            cushioned
+            __num_legs
+            max_weight
+            weight
+
+        Defines the following properties:
+            num_legs
+
+        Defines the following methods:
+    """
     WEIGHT_LIMIT_PER_LEG = 100
     WEIGHT_PER_LEG = 1
     WEIGHT_OF_SEAT = 2
@@ -143,6 +197,16 @@ class Chair(CompletedWoodObject):
 
 
 class CushionedChair(Chair):
+    """
+    A class which does a thing
+        Defines the following attributes:
+            name
+            cushioned
+
+        Defines the following properties:
+
+        Defines the following methods:
+    """
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.name = 'Cushioned Chair'
@@ -150,6 +214,17 @@ class CushionedChair(Chair):
 
 
 class CuttingBoard(CompletedWoodObject):
+    """
+    A class which does a thing
+        Defines the following attributes:
+            length
+            width
+            height
+
+        Defines the following properties:
+
+        Defines the following methods:
+    """
     def __init__(self, furniture, **kwargs):
         self.name = 'Cutting Board'
         super().__init__(self.name, furniture)
@@ -162,6 +237,21 @@ class CuttingBoard(CompletedWoodObject):
 
 
 class Desk(CompletedWoodObject):
+    """
+    A class which does a thing
+        Defines the following attributes:
+            length
+            width
+            height
+
+        Defines the following properties:
+            size
+            area
+            volume
+
+        Defines the following methods:
+            _set_defaults
+    """
     def __init__(self, furniture, **kwargs):
         self.name = 'Desk'
         super().__init__(self.name, furniture)
@@ -199,6 +289,25 @@ class Desk(CompletedWoodObject):
 
 
 class Drawer(CompletedWoodObject):
+    """
+    A class which does a thing
+        Defines the following attributes:
+            length
+            width
+            height
+            _stored_items
+
+        Defines the following properties:
+
+        Defines the following methods:
+            _set_defaults()
+            __iter__()
+            __get_item__()
+            retrieve_item()
+            retrieve_items()
+            store_item()
+            store_items()
+    """
     def __init__(self, furniture, **kwargs):
         self.name = 'Drawer'
         super().__init__(self.name, furniture)
@@ -243,11 +352,27 @@ class Drawer(CompletedWoodObject):
     def store_item(self, item):
         self._stored_items.append(item)
 
+    def store_items(self, items):
+        for item in items:
+            self.store_item(item)
+
     def use(self):
         print(f'You are now using the {self.name} to draw something')
 
 
 class Sofa(CompletedWoodObject):
+    """
+        A class which does a thing
+            Defines the following attributes:
+                length
+                width
+                height
+
+            Defines the following properties:
+
+            Defines the following methods:
+
+        """
     def __init__(self, furniture, **kwargs):
         self.name = 'Sofa'
         super().__init__(self.name, furniture)
@@ -271,6 +396,22 @@ class Sofa(CompletedWoodObject):
 
 
 class Table(CompletedWoodObject):
+    """
+        A class which does a thing
+            Defines the following attributes:
+                length
+                width
+                height
+                num_leaves
+
+            Defines the following properties:
+                size
+                area
+                volume
+
+            Defines the following methods:
+
+        """
     def __init__(self, furniture, **kwargs):
         self.name = 'Table'
         super().__init__(self.name, furniture)
@@ -312,11 +453,13 @@ class Table(CompletedWoodObject):
 
 
 class UnstoredItemError(Exception):
+    """Raised by the Drawer when something it isn't storing is asked to be retrieved"""
     def __init__(self, item, wood_object):
         super().__init__(f"There is no {item} in this {wood_object}")
 
 
 class InvalidLegNumber(Exception):
+    """Raised by Chairs when the number of legs isn't to their liking"""
     def __init__(self, *args):
         pass
         # super().__init__(*args)
