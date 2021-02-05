@@ -2,7 +2,16 @@ import time
 
 
 class Step:
-    """The base class for all steps. Defines one method perform()"""
+    """The base class for all steps.
+        Defines the following attributes:
+            name
+            step_type
+            INITIATION_TIME
+            __is_completed
+
+        Defines the following methods:
+            perform()
+    """
     def __init__(self, name, step_type, **kwargs):
         self.name = name
         self.step_type = step_type
