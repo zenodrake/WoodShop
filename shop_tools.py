@@ -10,6 +10,32 @@ LOADING_STEP = .1
 
 
 class ShopTool:
+    """Super class for all other tools.
+
+    Defines the following attributes:
+        name
+        brand
+        price
+        foot_print
+        needed_power
+        weight
+        is_repaired
+        is_being_used
+        is_cleaned
+        is_on
+        __loading_time
+        __loading_step
+
+    Defines the following properties:
+        loading_time -- the number of steps it takes to load a piece of wood into the tool
+        loading_step -- the time each step takes to complete.
+
+
+    Defines the following methods:
+        _is_step_acceptable()
+        _initialize_tool()
+        use() -- this is overridden by each subclass
+        """
     def __init__(self, name, **kwargs):
         self.name = name
         self.brand = kwargs.get('brand')
@@ -33,12 +59,18 @@ class ShopTool:
         return self.__loading_step
 
     def _is_step_acceptable(self, step):
+        """Returns true if <step> is in [acceptable_steps]."""
         if any((isinstance(step, Step) for Step in self.acceptable_steps)):
             return True
         else:
             raise InvalidStepError(f"The {self.name.title()} doesn't know how to perform {step.name}")
 
-    def _initilize(self, init_string, total_init_time, init_step):
+    def _initilize_tool(self, init_string, total_init_time, init_step):
+        """Display the initialization routine for the tool.
+        <init_string> <total_init_time> and <init_step> are all defined by the calling subclass
+        <init_string> is the string which will be displayed
+        <total_init_time> is the number of steps it takes to initialize the tool
+        <init_step> is the time each step takes to complete"""
         print(init_string, end='')
         for i in range(total_init_time):
             print('.', end='')
@@ -50,10 +82,16 @@ class ShopTool:
 
 
 class PoweredShopTool(ShopTool):
+    """The super class for all ShopTools which need electricity to work.
+    Defines the following methods:
+        turn_on()
+        turn_off()
+    """
     def __init__(self, name, **kwargs):
         super().__init__(name, **kwargs)
 
     def turn_on(self):
+        """Turn on the tool if it is not already on"""
         print(f'Turning on {self.name.title()}', end='')
         for i in range(TURN_ON_TIME):
             print('.', end='')
@@ -62,6 +100,7 @@ class PoweredShopTool(ShopTool):
         self.is_on = True
 
     def turn_off(self):
+        """Turn off the tool"""
         print(f'Turning off {self.name.title()}', end='')
         for i in range(TURN_OFF_TIME):
             print('.', end='')
@@ -70,6 +109,7 @@ class PoweredShopTool(ShopTool):
         print('DONE')
 
     def use(self):
+        """Check for on-ness. If it is on, Do nothing. If it isn't, turn it on"""
         if not self.is_on:
             self.turn_on()
         else:
@@ -77,6 +117,16 @@ class PoweredShopTool(ShopTool):
 
 
 class BandSaw(PoweredShopTool):
+    """A powered tool for cutting thick pieces of wood.
+    Defines the following attributes:
+        max_piece_height
+        acceptable_steps
+
+    Defines the following methods:
+        use()
+        cut_wood()
+    """
+
     def __init__(self, **kwargs):
         self.name = 'band saw'
         self.max_piece_height = kwargs.get('max_piece_height')
@@ -90,10 +140,28 @@ class BandSaw(PoweredShopTool):
             super().turn_off()
 
     def cut_wood(self, step):
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
         step.perform()
 
 
 class DrillPress(PoweredShopTool):
+    """A powered tool for drilling holes in things.
+        Defines the following attributes:
+            max_piece_height
+            acceptable_steps
+            __loading_time. see ShopTool for description
+            __loading_step. see ShopTool for description
+
+        Defines the following properties:
+            loading_time
+            loading_step
+
+        Defines the following methods:
+            use()
+            secure_workpiece()
+            drill()
+        """
     def __init__(self, **kwargs):
         self.name = 'drill press'
         super().__init__(self.name, **kwargs)
@@ -110,6 +178,11 @@ class DrillPress(PoweredShopTool):
     def loading_step(self):
         return self.__loading_step
 
+    def drill(self, step):
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
+        step.perform()
+
     def use(self, step):
         if self._is_step_acceptable(step):
             self.secure_workpiece()
@@ -117,10 +190,15 @@ class DrillPress(PoweredShopTool):
             super().turn_off()
 
     def secure_workpiece(self):
-        super()._initilize('Securing work piece', self.loading_time, self.loading_step)
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
+        super()._initilize_tool('Securing work piece', self.loading_time, self.loading_step)
 
 
 class DustCollector(PoweredShopTool):
+    """A powered tool for collecting dust. Not sure how to implement it as yet, but if it is attached to another tool
+    then the sawdust generated by that tool will go into the DustCollector instead onto the floor.
+    Will be important when it comes time for the Worker to clean up"""
     def __init__(self, **kwargs):
         self.name = 'dust collector'
         self.acceptable_steps = []
@@ -128,9 +206,20 @@ class DustCollector(PoweredShopTool):
 
 
 class Jointer(PoweredShopTool):
+    """A powered tool for making parallel two narrow sides of a board.
+        Defines the following attributes:
+            max_piece_width
+            acceptable_steps
+
+        Defines the following methods:
+            use()
+            load_workpiece()
+            joint_wood()
+    """
     def __init__(self, **kwargs):
         self.name = 'jointer'
         self.acceptable_steps = [cs.JointingStep]
+        self.max_piece_width = kwargs.get('max_piece_width')
         super().__init__(self.name, **kwargs)
 
     def use(self, step):
@@ -141,13 +230,35 @@ class Jointer(PoweredShopTool):
             super().turn_off()
 
     def joint_wood(self, step):
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
         step.perform()
 
-    def load_work_piece(self):
-        super()._initilize('Loading work piece', self.loading_time, self.loading_step)
+    def load_workpiece(self):
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
+        super()._initilize_tool('Loading work piece', self.loading_time, self.loading_step)
 
 
 class Lathe(PoweredShopTool):
+    """A powered tool for making cylinders and cylindrical things.
+        Defines the following attributes:
+            max_piece_length
+            max_speed
+            min_speed
+            acceptable_steps
+            __loading_time. see ShopTool for description
+            __loading_step. see ShopTool for description
+
+        Defines the following properties:
+            loading_time
+            loading_step
+
+        Defines the following methods:
+            use()
+            turn_wood()
+            load_workpiece()
+        """
     def __init__(self, **kwargs):
         self.name = 'lathe'
         self.max_piece_length = kwargs.get('max_piece_length')
@@ -174,13 +285,26 @@ class Lathe(PoweredShopTool):
             super().turn_off()
 
     def turn_wood(self, step):
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
         step.perform()
 
-    def load_work_piece(self):
-        super()._initilize('Loading work piece', self.loading_time, self.loading_step)
+    def load_workpiece(self):
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
+        super()._initilize_tool('Loading work piece', self.loading_time, self.loading_step)
 
 
 class Padder(PoweredShopTool):
+    """A powered tool for adding cushioning to things.
+        Defines the following attributes:
+            max_piece_height
+            acceptable_steps
+
+        Defines the following methods:
+            use()
+            add_padding()
+        """
     def __init__(self, **kwargs):
         self.name = 'padder'
         self.acceptable_steps = [cs.PaddingStep]
@@ -192,12 +316,23 @@ class Padder(PoweredShopTool):
             self.add_padding(step)
 
     def add_padding(self, step):
-        super()._initilize('Affixing part', self.loading_time, self.loading_step)
-        super()._initilize('Loading padding', self.loading_time, self.loading_step)
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
+        super()._initilize_tool('Affixing part', self.loading_time, self.loading_step)
+        super()._initilize_tool('Loading padding', self.loading_time, self.loading_step)
         step.perform()
 
 
 class Planer(PoweredShopTool):
+    """A powered tool for making parallel the two broad sides of a board.
+        Defines the following attributes:
+            max_piece_height
+            acceptable_steps
+
+        Defines the following methods:
+            use()
+            plane_wood()
+        """
     def __init__(self, **kwargs):
         self.name = 'planer'
         self.acceptable_steps = [cs.PlaningStep]
@@ -209,11 +344,22 @@ class Planer(PoweredShopTool):
             self.plane_wood(step)
 
     def plane_wood(self, step):
-        super()._initilize('Feeding board', self.loading_time, self.loading_sep)
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
+        super()._initilize_tool('Feeding board', self.loading_time, self.loading_sep)
         step.perform()
 
 
 class Router(PoweredShopTool):
+    """A powered tool for rounding off edges or hollowing out part of a thing.
+        Defines the following attributes:
+            max_piece_height
+            acceptable_steps
+
+        Defines the following methods:
+            use()
+            route_wood()
+        """
     def __init__(self, **kwargs):
         self.name = 'router'
         self.acceptable_steps = [cs.RoutingStep]
@@ -226,10 +372,21 @@ class Router(PoweredShopTool):
             super().turn_off()
 
     def route_wood(self, step):
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
         step.perform()
 
 
 class Sander(PoweredShopTool):
+    """A powered tool for sanding and making smooth things.
+        Defines the following attributes:
+            max_piece_height
+            acceptable_steps
+
+        Defines the following methods:
+            use()
+            sand_wood()
+        """
     def __init__(self, **kwargs):
         self.name = 'sander'
         self.acceptable_steps = [cs.SandingStep]
@@ -242,10 +399,21 @@ class Sander(PoweredShopTool):
             super().turn_off()
 
     def sand_wood(self, step):
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
         step.perform()
 
 
 class ScrollSaw(PoweredShopTool):
+    """A powered tool for cutting intricate shapes in things.
+        Defines the following attributes:
+            max_piece_height
+            acceptable_steps
+
+        Defines the following methods:
+            use()
+            cut_wood()
+        """
     def __init__(self, **kwargs):
         self.name = 'scroll saw'
         self.acceptable_steps = [cs.CuttingStep]
@@ -258,10 +426,21 @@ class ScrollSaw(PoweredShopTool):
             super().turn_off()
 
     def cut_wood(self, step):
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
         step.perform()
 
 
 class TableSaw(PoweredShopTool):
+    """A powered tool for cutting boards either lengthwise or widthwise.
+        Defines the following attributes:
+            max_piece_height
+            acceptable_steps
+
+        Defines the following methods:
+            use()
+            cut_wood()
+        """
     def __init__(self, **kwargs):
         self.name = 'table saw'
         self.acceptable_steps = [cs.CuttingStep]
@@ -274,10 +453,21 @@ class TableSaw(PoweredShopTool):
             super().turn_off()
 
     def cut_wood(self, step):
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
         step.perform()
 
 
 class WorkBench(ShopTool):
+    """An unpowered tool primarily for assembling FurnitureComponents but also Gluing, Sanding, and Fastening.
+        Defines the following attributes:
+            max_piece_height
+            acceptable_steps
+
+        Defines the following methods:
+            use()
+            clamp_piece()
+        """
     def __init__(self, **kwargs):
         self.name = 'work bench'
         self.acceptable_steps = [cs.GluingStep, cs.SandingStep, cs.FasteningStep]
@@ -290,10 +480,13 @@ class WorkBench(ShopTool):
             step.perform()
 
     def clamp_piece(self):
-        super()._initilize('Clamping workpiece in place', self.loading_time, self.loading_step)
+        """Not to be called directly. Call use() instead.
+        This method merely calls the perform() method for whatever <step> is passed to it"""
+        super()._initilize_tool('Clamping workpiece in place', self.loading_time, self.loading_step)
 
 
 class InvalidStepError(Exception):
+    """Used to indicate when a step passed to a ShopTool is not in its acceptable_steps attribute"""
     pass
 
 
