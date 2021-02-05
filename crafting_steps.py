@@ -10,6 +10,8 @@ class Step:
         self.__is_completed = False
 
     def perform(self):
+        """Complete the step. This method is inherited by all sub classes.
+        It returns nothing, just prints out that the step is being performed"""
         print(f'Initiating {self.name.lower()}....', end='')
         # for i in range(1, self.INITIATION_TIME):
         #     print(i, end='...')
@@ -37,6 +39,7 @@ class Step:
 
 
 class GenerationStep(Step):
+    """A step which signifies that output of it will be an object, specifically some form of FurnitureComponent"""
     def __init__(self, name, **kwargs):
         self.name = name
         self.step_type = 'generation'
@@ -44,6 +47,7 @@ class GenerationStep(Step):
 
 
 class AlterationStep(Step):
+    """A step which signifies that output of it will change an existing object, specifically a FurnitureComponent"""
     def __init__(self, name, **kwargs):
         self.name = name
         self.step_type = 'alteration'
@@ -51,6 +55,8 @@ class AlterationStep(Step):
 
 
 class AssemblyStep(Step):
+    """A step which signifies that FurnitureComponents will be combined into a new object,
+    specifically a CompletedWoodObject, like a Bed or a Chair"""
     def __init__(self, name, **kwargs):
         self.name = name
         self.step_type = 'assembly'
